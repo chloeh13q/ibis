@@ -5,13 +5,12 @@ from typing import Any
 import pytest
 
 import ibis
-from ibis.backends.conftest import TEST_TABLES
 from ibis.backends.tests.base import BackendTest, RoundAwayFromZero
 
 
 class TestConf(BackendTest, RoundAwayFromZero):
     supports_structs = False
-    deps = "pandas", "pyflink"
+    deps = ("pyflink",)
 
     @staticmethod
     def connect(*, tmpdir, worker_id, **kw: Any):
@@ -22,11 +21,8 @@ class TestConf(BackendTest, RoundAwayFromZero):
         return ibis.flink.connect(table_env, **kw)
 
     def _load_data(self, **_: Any) -> None:
-        import pandas as pd
-
-        for table_name in TEST_TABLES:
-            path = self.data_dir / "parquet" / f"{table_name}.parquet"
-            self.connection.create_table(table_name, pd.read_parquet(path))
+        for stmt in self.ddl_script:
+            self.connection._t_env.execute_sql(stmt.format(data_dir=self.data_dir))
 
 
 @pytest.fixture
