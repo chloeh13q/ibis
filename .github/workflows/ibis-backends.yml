@@ -427,7 +427,7 @@ jobs:
 
       - name: "run serial tests: ${{ matrix.backend.name }}"
         if: matrix.backend.serial && matrix.backend.name == 'flink'
-        run: just ci-check -m ${{ matrix.backend.name }} ibis/backends/tests/flink
+        run: just ci-check -m ${{ matrix.backend.name }} ibis/backends/flink/tests
         env:
           IBIS_EXAMPLES_DATA: ${{ runner.temp }}/examples-${{ matrix.backend.name }}-${{ matrix.os }}-${{ steps.install_python.outputs.python-version }}
 

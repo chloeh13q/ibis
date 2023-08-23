@@ -35,7 +35,6 @@ limit = [
                     "impala",
                     "pandas",
                     "pyspark",
-                    "flink",
                 ]
             ),
         ],
@@ -44,9 +43,7 @@ limit = [
 
 no_limit = [
     param(
-        None,
-        id="nolimit",
-        marks=[pytest.mark.notimpl(["dask", "impala", "pyspark", "flink"])],
+        None, id="nolimit", marks=[pytest.mark.notimpl(["dask", "impala", "pyspark"])]
     )
 ]
 
@@ -119,7 +116,7 @@ ARROW_STRING_TYPE = {
 }
 
 
-@pytest.mark.notimpl(["dask", "impala", "pyspark", "druid", "flink"])
+@pytest.mark.notimpl(["dask", "impala", "pyspark", "druid"])
 def test_table_to_pyarrow_table_schema(con, awards_players):
     table = awards_players.to_pyarrow()
     assert isinstance(table, pa.Table)
@@ -138,7 +135,7 @@ def test_table_to_pyarrow_table_schema(con, awards_players):
     assert table.schema == expected_schema
 
 
-@pytest.mark.notimpl(["dask", "impala", "pyspark", "flink"])
+@pytest.mark.notimpl(["dask", "impala", "pyspark"])
 def test_column_to_pyarrow_table_schema(awards_players):
     expr = awards_players.awardID
     array = expr.to_pyarrow()
@@ -146,7 +143,7 @@ def test_column_to_pyarrow_table_schema(awards_players):
     assert array.type == pa.string() or array.type == pa.large_string()
 
 
-@pytest.mark.notimpl(["pandas", "dask", "impala", "pyspark", "datafusion", "flink"])
+@pytest.mark.notimpl(["pandas", "dask", "impala", "pyspark", "datafusion"])
 @pytest.mark.notyet(
     ["clickhouse"],
     raises=AssertionError,
@@ -161,7 +158,7 @@ def test_table_pyarrow_batch_chunk_size(awards_players):
         util.consume(batch_reader)
 
 
-@pytest.mark.notimpl(["pandas", "dask", "impala", "pyspark", "datafusion", "flink"])
+@pytest.mark.notimpl(["pandas", "dask", "impala", "pyspark", "datafusion"])
 @pytest.mark.notyet(
     ["clickhouse"],
     raises=AssertionError,
@@ -178,7 +175,7 @@ def test_column_pyarrow_batch_chunk_size(awards_players):
         util.consume(batch_reader)
 
 
-@pytest.mark.notimpl(["pandas", "dask", "impala", "pyspark", "datafusion", "flink"])
+@pytest.mark.notimpl(["pandas", "dask", "impala", "pyspark", "datafusion"])
 @pytest.mark.broken(
     ["sqlite"],
     raises=pa.ArrowException,
@@ -195,7 +192,7 @@ def test_to_pyarrow_batches_borked_types(batting):
         util.consume(batch_reader)
 
 
-@pytest.mark.notimpl(["dask", "impala", "pyspark", "flink"])
+@pytest.mark.notimpl(["dask", "impala", "pyspark"])
 def test_to_pyarrow_memtable(con):
     expr = ibis.memtable({"x": [1, 2, 3]})
     table = con.to_pyarrow(expr)
@@ -203,7 +200,7 @@ def test_to_pyarrow_memtable(con):
     assert len(table) == 3
 
 
-@pytest.mark.notimpl(["dask", "impala", "pyspark", "flink"])
+@pytest.mark.notimpl(["dask", "impala", "pyspark"])
 def test_to_pyarrow_batches_memtable(con):
     expr = ibis.memtable({"x": [1, 2, 3]})
     n = 0
@@ -214,7 +211,7 @@ def test_to_pyarrow_batches_memtable(con):
     assert n == 3
 
 
-@pytest.mark.notimpl(["dask", "impala", "pyspark", "flink"])
+@pytest.mark.notimpl(["dask", "impala", "pyspark"])
 def test_table_to_parquet(tmp_path, backend, awards_players):
     outparquet = tmp_path / "out.parquet"
     awards_players.to_parquet(outparquet)
@@ -242,7 +239,7 @@ def test_table_to_parquet(tmp_path, backend, awards_players):
     reason="no partitioning support",
 )
 @pytest.mark.notimpl(
-    ["dask", "impala", "pyspark", "druid", "flink"], reason="No to_parquet support"
+    ["dask", "impala", "pyspark", "druid"], reason="No to_parquet support"
 )
 def test_roundtrip_partitioned_parquet(tmp_path, con, backend, awards_players):
     outparquet = tmp_path / "outhive.parquet"
@@ -268,7 +265,7 @@ def test_roundtrip_partitioned_parquet(tmp_path, con, backend, awards_players):
 
 
 @pytest.mark.notimpl(
-    ["dask", "impala", "pyspark", "flink"], reason="No support for exporting files"
+    ["dask", "impala", "pyspark"], reason="No support for exporting files"
 )
 @pytest.mark.parametrize("ftype", ["csv", "parquet"])
 def test_memtable_to_file(tmp_path, con, ftype, monkeypatch):
@@ -290,7 +287,7 @@ def test_memtable_to_file(tmp_path, con, ftype, monkeypatch):
     assert outfile.is_file()
 
 
-@pytest.mark.notimpl(["dask", "impala", "pyspark", "flink"])
+@pytest.mark.notimpl(["dask", "impala", "pyspark"])
 def test_table_to_csv(tmp_path, backend, awards_players):
     outcsv = tmp_path / "out.csv"
 
@@ -318,7 +315,6 @@ def test_table_to_csv(tmp_path, backend, awards_players):
                 pytest.mark.notyet(["druid"], raises=sa.exc.ProgrammingError),
                 pytest.mark.notyet(["dask"], raises=NotImplementedError),
                 pytest.mark.notyet(["pyspark"], raises=NotImplementedError),
-                pytest.mark.notyet(["flink"], raises=NotImplementedError),
             ],
         ),
         param(
@@ -335,7 +331,6 @@ def test_table_to_csv(tmp_path, backend, awards_players):
                 pytest.mark.notyet(["dask"], raises=NotImplementedError),
                 pytest.mark.notyet(["mssql", "mysql"], raises=sa.exc.OperationalError),
                 pytest.mark.notyet(["pyspark"], raises=ParseException),
-                pytest.mark.notyet(["flink"], raises=NotImplementedError),
             ],
         ),
     ],
@@ -362,7 +357,6 @@ def test_to_pyarrow_decimal(backend, dtype, pyarrow_dtype):
         "snowflake",
         "sqlite",
         "trino",
-        "flink",
     ],
     raises=AttributeError,
     reason="read_delta not yet implemented",
@@ -404,7 +398,6 @@ def test_roundtrip_delta(con, alltypes, tmp_path, monkeypatch):
 @pytest.mark.notimpl(
     ["impala"], raises=AttributeError, reason="missing `fetchmany` on the cursor"
 )
-@pytest.mark.notimpl(["flink"], raises=NotImplementedError)
 def test_arrow_timestamp_with_time_zone(alltypes):
     from ibis import _
 
@@ -425,7 +418,7 @@ def test_arrow_timestamp_with_time_zone(alltypes):
     assert batch.schema.types == expected
 
 
-@pytest.mark.notimpl(["dask", "druid", "flink"])
+@pytest.mark.notimpl(["dask", "druid"])
 @pytest.mark.notimpl(
     ["impala"], raises=AttributeError, reason="missing `fetchmany` on the cursor"
 )
@@ -446,7 +439,6 @@ def test_to_torch(alltypes):
         non_numeric.to_torch()
 
 
-@pytest.mark.notimpl(["flink"])
 def test_empty_memtable(backend, con):
     expected = pd.DataFrame({"a": []})
     table = ibis.memtable(expected)
